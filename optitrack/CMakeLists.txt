@@ -1,0 +1,26 @@
+# # create an executable
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CENTER_DEMO_BINARY_DIR}/optitrack)
+ADD_EXECUTABLE (panda_controller panda_controller.cpp ${CENTER_DEMO_COMMON_SOURCE})
+ADD_EXECUTABLE (simviz_volley_game simviz.cpp ${CENTER_DEMO_COMMON_SOURCE})
+# ADD_EXECUTABLE (rendering rendering.cpp ${CENTER_DEMO_COMMON_SOURCE})
+# ADD_EXECUTABLE (visualization visualization.cpp ${CENTER_DEMO_COMMON_SOURCE})
+# ADD_EXECUTABLE (simulation_atlas simulation_atlas.cpp ${CENTER_DEMO_COMMON_SOURCE})
+# ADD_EXECUTABLE (trace trace.cpp ${CENTER_DEMO_COMMON_SOURCE})
+
+
+# # and link the library against the executable
+TARGET_LINK_LIBRARIES (panda_controller ${CENTER_DEMO_COMMON_LIBRARIES})
+TARGET_LINK_LIBRARIES (simviz_volley_game ${CENTER_DEMO_COMMON_LIBRARIES})
+# TARGET_LINK_LIBRARIES (rendering ${CENTER_DEMO_COMMON_LIBRARIES})
+# TARGET_LINK_LIBRARIES (visualization ${CENTER_DEMO_COMMON_LIBRARIES})
+# TARGET_LINK_LIBRARIES (simulation_atlas ${CENTER_DEMO_COMMON_LIBRARIES})
+# TARGET_LINK_LIBRARIES (trace ${CENTER_DEMO_COMMON_LIBRARIES})
+
+# # export resources such as model files.
+# # NOTE: this requires an install build
+SET(APP_RESOURCE_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources)
+FILE(MAKE_DIRECTORY ${APP_RESOURCE_DIR})
+FILE(COPY world DESTINATION ${APP_RESOURCE_DIR})
+FILE(COPY model DESTINATION ${APP_RESOURCE_DIR})
+#FILE(COPY background DESTINATION ${APP_RESOURCE_DIR})
+#FILE(COPY audio DESTINATION ${APP_RESOURCE_DIR})

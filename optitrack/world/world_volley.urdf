@@ -1,0 +1,60 @@
+<?xml version="1.0" ?>
+
+<world name="demo_world" gravity="0.0 0.0 -3.0">
+
+	
+	<robot name="mmp_panda">
+		<model dir="./resources" path="./model/mmp_panda.urdf" name="mmp_panda" />
+	</robot>
+
+	<static_object name="Base">
+		<origin xyz="0.0 0.0 -0.35" rpy="0 0 0" />
+	    <visual>
+	        <origin xyz="0.0 0.0 -0.00635" rpy="0 0 0" />
+	        <geometry>
+				<box size="55 55 0.0127" />
+	        </geometry>
+	        <material name="material">
+		        <color rgba="0.1 0.1 0.1 1.0" />
+	        </material>
+	    </visual>
+		<collision>
+	        <origin xyz="0.0 0.0 -0.00635" rpy="0 0 0" />
+	        <geometry>
+	            <box size="55 55 0.0127" />
+	        </geometry>
+	    </collision>
+	</static_object>
+
+
+	<static_object name="Court_Base">
+		<origin xyz="0.0 0.0 -0.349" rpy="0 0 0" />
+	    <visual>
+	        <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+	        <geometry>
+				<box size="12 4 0.01" />
+	        </geometry>
+	        <material name="material">
+		        <color rgba="0.6 0.6 0.4 0.0" />
+	        </material>
+	    </visual>
+	</static_object>
+
+
+	<light name="light1" type="directional">
+		<position xyz="2.0 2.0 2.0" />
+		<lookat xyz="0.0 0.0 0.0" />
+	</light>
+
+	<light name="light2" type="directional">
+		<position xyz="-2.0 -2.0 2.0" />
+		<lookat xyz="0.0 0.0 0.0" />
+	</light>
+
+	<camera name="camera_fixed">
+		<position xyz="4.0 -4.0 8.0" />
+		<vertical xyz="0.0 0.0 20.0" />
+		<lookat xyz="4.0 0.0 0.0" />
+	</camera>
+
+</world>

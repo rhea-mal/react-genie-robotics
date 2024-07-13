@@ -1,0 +1,2 @@
+/Library/Developer/CommandLineTools/usr/bin/ar qc libcenter-demo.a "CMakeFiles/center-demo.dir/include/Human.cpp.o" "CMakeFiles/center-demo.dir/include/Human2D.cpp.o"
+/Library/Developer/CommandLineTools/usr/bin/ranlib libcenter-demo.a
