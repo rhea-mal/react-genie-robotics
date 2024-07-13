@@ -13,26 +13,12 @@ redis_client = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, decode_respon
 
 # Specific keys for rigid body positions and orientations
 RIGID_BODY_POSITION_KEYS = [
-    "sai2::optitrack::rigid_body_pos::1",
-    "sai2::optitrack::rigid_body_pos::2",
-    "sai2::optitrack::rigid_body_pos::3",
-    "sai2::optitrack::rigid_body_pos::4",
-    "sai2::optitrack::rigid_body_pos::5",
-    "sai2::optitrack::rigid_body_pos::6"
+    "sai2::realsense::left_hand",
+    "sai2::realsense::right_hand",
+    "sai2::realsense::center_hips"
 ]
 
-RIGID_BODY_ORIENTATION_KEYS = [
-    "sai2::optitrack::rigid_body_ori::1",
-    "sai2::optitrack::rigid_body_ori::2",
-    "sai2::optitrack::rigid_body_ori::3",
-    "sai2::optitrack::rigid_body_ori::4",
-    "sai2::optitrack::rigid_body_ori::5",
-    "sai2::optitrack::rigid_body_ori::6"
-]
-
-ALL_KEYS = RIGID_BODY_POSITION_KEYS + RIGID_BODY_ORIENTATION_KEYS
-
-history = {key: [] for key in ALL_KEYS}
+history = {key: [] for key in RIGID_BODY_POSITION_KEYS}
 
 def cleanup_old_entries(history, current_time):
     """
@@ -49,7 +35,7 @@ def initialize_output_file():
     Initialize the output file with a header row containing the keys.
     """
     with open(OUTPUT_FILE, 'w') as file:
-        header = ['timestamp'] + ALL_KEYS
+        header = ['timestamp'] + RIGID_BODY_POSITION_KEYS
         file.write('\t'.join(header) + '\n')
 
 def append_to_output_file(history):
@@ -59,7 +45,7 @@ def append_to_output_file(history):
     """
     with open(OUTPUT_FILE, 'a') as file:
         for timestamp in sorted(set(entry['timestamp'] for key in history for entry in history[key])):
-            row = [timestamp.strftime('%Y-%m-%d %H:%M:%S.%f')] + [next((entry['value'] for entry in history[key] if entry['timestamp'] == timestamp), 'None') for key in ALL_KEYS]
+            row = [timestamp.strftime('%Y-%m-%d %H:%M:%S.%f')] + [next((entry['value'] for entry in history[key] if entry['timestamp'] == timestamp), 'None') for key in RIGID_BODY_POSITION_KEYS]
             file.write('\t'.join(row) + '\n')
 
 def read_and_append_keys():
@@ -70,7 +56,7 @@ def read_and_append_keys():
     while True:
         current_time = datetime.now()
         data = {}
-        for key in ALL_KEYS:
+        for key in RIGID_BODY_POSITION_KEYS:
             try:
                 value = redis_client.get(key)
                 if value is not None:

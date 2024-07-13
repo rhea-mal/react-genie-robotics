@@ -162,7 +162,6 @@ int main() {
 			lock_guard<mutex> lock(mutex_torques);
 			
 			ui_torques = graphics->getUITorques(robot_name);
-			toro_ui_torques = graphics->getUITorques(toro_name);
 		}
 	}
 

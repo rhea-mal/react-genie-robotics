@@ -93,20 +93,6 @@ panda_controller_EXTERNAL_OBJECTS =
 /Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: optitrack/CMakeFiles/panda_controller.dir/panda_controller.cpp.o
 /Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: optitrack/CMakeFiles/panda_controller.dir/build.make
 /Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: /Users/rheamalhotra/Desktop/robotics/OpenSai/core/sai2-interfaces/build/libsai2-interfaces.a
-/Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: /Users/rheamalhotra/Desktop/robotics/OpenSai/core/sai2-primitives/build/libsai2-primitives.a
-/Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: /Users/rheamalhotra/Desktop/robotics/OpenSai/core/sai2-primitives/ruckig/build/libruckig.dylib
-/Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: /Users/rheamalhotra/Desktop/robotics/OpenSai/core/sai2-simulation/build/libsai2-simulation.a
-/Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: /Users/rheamalhotra/Desktop/robotics/OpenSai/core/sai2-simulation/lib/macOS/arm64/libsai2-simulation-core.a
-/Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: /Users/rheamalhotra/Desktop/robotics/OpenSai/core/sai2-graphics/build/libsai2-graphics.a
-/Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: /opt/homebrew/lib/libglfw.dylib
-/Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: /Users/rheamalhotra/Desktop/robotics/OpenSai/core/chai3d/build/libchai3d.a
-/Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: /Users/rheamalhotra/Desktop/robotics/OpenSai/core/sai2-model/build/libsai2-model.a
-/Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: /Users/rheamalhotra/Desktop/robotics/OpenSai/core/sai2-model/rbdl/build/librbdl.dylib
-/Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: /Users/rheamalhotra/Desktop/robotics/OpenSai/core/sai2-urdfreader/build/libsai2-urdf.a
-/Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: /opt/homebrew/lib/libtinyxml2.dylib
-/Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: /Users/rheamalhotra/Desktop/robotics/OpenSai/core/sai2-common/build/libsai2-common.a
-/Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: /opt/homebrew/lib/libjsoncpp.dylib
-/Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: /opt/homebrew/lib/libhiredis.dylib
 /Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: /Users/rheamalhotra/Desktop/robotics/OpenSai/core/sai2-model/build/libsai2-model.a
 /Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: /Users/rheamalhotra/Desktop/robotics/OpenSai/core/sai2-model/rbdl/build/librbdl.dylib
 /Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: /Users/rheamalhotra/Desktop/robotics/OpenSai/core/sai2-graphics/build/libsai2-graphics.a
@@ -123,6 +109,8 @@ panda_controller_EXTERNAL_OBJECTS =
 /Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: /Users/rheamalhotra/Desktop/robotics/OpenSai/core/sai2-primitives/build/libsai2-primitives.a
 /Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: /Users/rheamalhotra/Desktop/robotics/OpenSai/core/sai2-primitives/ruckig/build/libruckig.dylib
 /Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: libcenter-demo.a
+/Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: /opt/homebrew/lib/libtinyxml2.dylib
+/Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: /Users/rheamalhotra/Desktop/robotics/OpenSai/core/sai2-primitives/ruckig/build/libruckig.dylib
 /Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller: optitrack/CMakeFiles/panda_controller.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/rheamalhotra/Desktop/robotics/react-genie-robotics/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable /Users/rheamalhotra/Desktop/robotics/react-genie-robotics/bin/optitrack/panda_controller"
 	cd /Users/rheamalhotra/Desktop/robotics/react-genie-robotics/build/optitrack && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/panda_controller.dir/link.txt --verbose=$(VERBOSE)

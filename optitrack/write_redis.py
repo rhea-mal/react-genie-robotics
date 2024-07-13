@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 # Redis configuration
 REDIS_HOST = '127.0.0.1'
 REDIS_PORT = 6379
-INPUT_FILE = './recordings/jump.txt'  # Input file with the data
+INPUT_FILE = './recordings/realsense.txt'  # Input file with the data
 
 # Connect to Redis
 redis_client = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
