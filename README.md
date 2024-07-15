@@ -1,22 +1,5 @@
-# OptiBots: Motion Capture of Humanoid Robots in Robotic Gaming Simulations Using OptiTrack
-
-## Project Description
-This project integrates Optitrack with OpenSAI to simulate a game of volleyball between two robots: the humanoid robot Toro and the Panda robot arm on a mobile base. The user controls Toro using Optitrack, and the Panda arm returns the ball. The game ends when the ball hits the ground. The camera can switch between a global view and Toro's first-person view, allowing for future VR capabilities.
-
-Global View:
-
-https://github.com/rhea-mal/humanoid-motion-mapping/assets/70975260/e486e779-9203-4546-85a5-c2aa4ac2ef25
-
-Head View:
-
-https://github.com/rhea-mal/humanoid-motion-mapping/assets/70975260/262560c0-7174-461a-b65c-12ee78ff18a6
-
-Optitrack Human Interface:
-
-
-https://github.com/rhea-mal/humanoid-motion-mapping/assets/70975260/1925377f-73c9-4a0b-8065-bd5551e37ef4
-
-
+# Optitrack Dance
+Visualizations
 
 ### Prerequisites
 - OpenSAI: [OpenSAI GitHub Repository](https://github.com/manips-sai-org/OpenSai)
