@@ -1,8 +1,3 @@
-/**
- * @file panda_controller.cpp
- * @brief Basic Panda Controller to map left and right hand positions to the end-effector.
- */
-
 #include <Sai2Model.h>
 #include "Sai2Primitives.h"
 #include "redis/RedisClient.h"
@@ -27,15 +22,37 @@ void sighandler(int){fSimulationRunning = false;}
 
 VectorXd panda_ui_torques;
 
+// globals
+VectorXd nominal_posture;
+VectorXd control_torques;
+mutex mutex_update;
+mutex mutex_torques;
+
 enum State {
     RESET = 0,
     CALIBRATION,
     TRACKING,
 };
 
-int main() {
-    const string robot_file = "/Users/rheamalhotra/Desktop/robotics/react-genie-robotics/optitrack/model/mmp_panda.urdf";
+const string robot_file = "/Users/rheamalhotra/Desktop/robotics/react-genie-robotics/optitrack/model/mmp_panda.urdf";
 
+// this is OT R transpose only
+Eigen::Matrix3d quaternionToRotationMatrix(const VectorXd& quat)
+{
+    Eigen::Quaterniond q;
+    q.x() = quat[0];
+    q.y() = quat[1];
+    q.z() = quat[2];
+    q.w() = quat[3];
+    return q.toRotationMatrix();
+}
+
+void control(std::shared_ptr<Human2D> human,
+             std::shared_ptr<Sai2Model::Sai2Model> robot);
+
+Matrix3d R_realsense_to_sai = AngleAxisd(- M_PI / 2, Vector3d::UnitZ()).toRotationMatrix() * AngleAxisd(-M_PI / 2, Vector3d::UnitX()).toRotationMatrix();
+
+int main() {
     // Start Redis client
     auto redis_client = Sai2Common::RedisClient();
     redis_client.connect();
@@ -47,179 +64,149 @@ int main() {
 
     // Load robot model
     auto robot = make_shared<Sai2Model::Sai2Model>(robot_file, false);
-    robot->setQ(redis_client.getEigen(PANDA_JOINT_ANGLES_KEY));
-    robot->setDq(redis_client.getEigen(PANDA_JOINT_VELOCITIES_KEY));
-    robot->updateModel();
+    nominal_posture = robot->q();
 
     // Prepare controller
     int dof = robot->dof();
-    VectorXd command_torques = VectorXd::Zero(dof);
+    control_torques = VectorXd::Zero(dof);
+    redis_client.setInt(USER_READY_KEY, 0);
+    MatrixXd N_prec = MatrixXd::Identity(dof, dof);
+    robot->updateModel();
+
+    std::vector<std::string> link_names = {"end-effector"};
+    auto human = std::make_shared<Optitrack::Human2D>(link_names);
+    human->setRotationReference(R_realsense_to_sai);
+    redis_client.setInt(USER_READY_KEY, 0);
+
+    // start controller thread
+    thread control_thread(control, human, robot);
+
+    control_thread.join();
+
+    return 0;
+}
+
+void control(std::shared_ptr<Optitrack::Human2D> human,
+             std::shared_ptr<Sai2Model::Sai2Model> robot) {
+
+    // create redis client
+    auto redis_client = Sai2Common::RedisClient();
+    redis_client.connect();
+
+    // update robot model and initialize control vectors
+    robot->setQ(redis_client.getEigen(PANDA_JOINT_ANGLES_KEY));
+    robot->setDq(redis_client.getEigen(PANDA_JOINT_VELOCITIES_KEY));
+    robot->updateModel();
+    int dof = robot->dof();
     MatrixXd N_prec = MatrixXd::Identity(dof, dof);
 
-    // End-effector task
-    const string control_link = "end-effector";
-    const Vector3d control_point = Vector3d(0.0, 0.0, -0.05);
-    Affine3d compliant_frame = Affine3d::Identity();
-    compliant_frame.translation() = control_point;
+    Eigen::Affine3d control_frame = Eigen::Affine3d::Identity();
+    control_frame.translation() = Vector3d(0, 0, 0);
 
-    auto pose_task = make_shared<MotionForceTask>(robot, control_link, compliant_frame);
-    pose_task->disableVelocitySaturation();
-    pose_task->disableInternalOtg();
+    auto task = std::make_shared<Sai2Primitives::MotionForceTask>(robot, "end-effector", control_frame);
+    task->disableInternalOtg();
+    task->setDynamicDecouplingType(Sai2Primitives::FULL_DYNAMIC_DECOUPLING);
+    task->setPosControlGains(400, 40, 0);
 
-    // joint task
-    MatrixXd joint_selection_matrix = MatrixXd::Zero(7, robot->dof());
-    joint_selection_matrix(0, 3) = 1;
-    joint_selection_matrix(1, 4) = 1;
-    joint_selection_matrix(2, 5) = 1;
-    joint_selection_matrix(3, 6) = 1;
-    joint_selection_matrix(4, 7) = 1;
-    joint_selection_matrix(5, 8) = 1;
-    joint_selection_matrix(6, 9) = 1;
-    auto joint_task = std::make_shared<Sai2Primitives::JointTask>(robot, joint_selection_matrix);
+    auto joint_task = std::make_shared<Sai2Primitives::JointTask>(robot);
     joint_task->disableVelocitySaturation();
     joint_task->disableInternalOtg();
-    VectorXd q_desired(7);
+    VectorXd q_desired = robot->q();
+    joint_task->setGains(400, 40, 0);
+    joint_task->setDynamicDecouplingType(Sai2Primitives::FULL_DYNAMIC_DECOUPLING);
+    joint_task->setGoalPosition(nominal_posture);
 
-    // Mobile base task
-    MatrixXd base_selection_matrix = MatrixXd::Zero(3, robot->dof());
-    base_selection_matrix(0, 0) = 1;
-    base_selection_matrix(1, 1) = 1;
-    base_selection_matrix(2, 2) = 1;
-    auto base_task = make_shared<JointTask>(robot, base_selection_matrix);
-    base_task->disableVelocitySaturation();
-    base_task->disableInternalOtg();
-    base_task->setGains(100, 10, 0);
+    // initialize
+    int state = CALIBRATION;
 
-    // Create a loop timer
-    fSimulationRunning = true;
-    double control_freq = 1000;
-    LoopTimer timer(control_freq, 1e6);
-
-    q_desired << -166.0, -101.0, -39.0, -148.0, 78.0, 95.0, -53.0; // Desired Null Space Arm Posture
-    q_desired *= M_PI / 180.0;
-
-    // Set task Gains
-    pose_task->setPosControlGains(1500, 150, 0);
-    pose_task->setOriControlGains(3000, 150, 0);
-    base_task->setGains(800, 80, 0);
-
-    Vector3d wait_pos(3.0, 0.0, 0.8);
-    Matrix3d wait_rot;
-    wait_rot << 0, -1,  0,
-                0,  0, -1,
-                1,  0,  0;    
-
-    // Current EE values
-    Vector3d x;
-    Vector3d dx;
-    Matrix3d R;
-
-    // Curr robot joint values
-    VectorXd q(dof);
-    VectorXd dq(dof);
-
-    // Initialize Human2D
-    vector<string> complete_link_names = {"left_hand", "right_hand"};
-    vector<Affine3d> current_link_poses(complete_link_names.size(), Affine3d::Identity());
-    auto human = make_shared<Optitrack::Human2D>(complete_link_names);
-
-    // Initialize state
-    State state = RESET;
     bool first_loop = true;
+    const int n_calibration_samples = 1000;  // 1 second of samples
     int n_samples = 0;
-    const int n_calibration_samples = 100; // Example value, adjust as needed
+    VectorXd robot_control_torques = VectorXd::Zero(dof);
 
-    while (fSimulationRunning) {
+    Eigen::Affine3d end_effector_initial_pose = Eigen::Affine3d::Identity();
+
+    // create a loop timer
+    bool runloop = true;
+    double control_freq = 1000;
+    Sai2Common::LoopTimer timer(control_freq, 1e6);
+
+    while (runloop) {
         timer.waitForNextLoop();
         const double time = timer.elapsedSimTime();
 
-        // Update robot model
+        // update robot model
         robot->setQ(redis_client.getEigen(PANDA_JOINT_ANGLES_KEY));
         robot->setDq(redis_client.getEigen(PANDA_JOINT_VELOCITIES_KEY));
         robot->updateModel();
 
-        // Update EE values
-        x << robot->positionInWorld(control_link, control_point);
-        dx << robot->Jv(control_link, control_point) * robot->dq();
-        R << robot->rotationInWorld(control_link);
+        // Get the position from Redis
+        Eigen::Vector3d end_effector_position = redis_client.getEigen("sai2::realsense::right_hand");
 
-        q << robot->q();
-        dq << robot->dq();
+        Eigen::Affine3d current_pose = Eigen::Affine3d::Identity();
+        current_pose.translation() = end_effector_position;
 
-        // Read hand positions
-        Vector3d right_hand_pos = redis_client.getEigen(RIGHT_HAND_POS);
-        Vector3d left_hand_pos = redis_client.getEigen(LEFT_HAND_POS);
+        if (state == RESET) {
+            // start robot at default configuration and hold the posture
+            joint_task->setGoalPosition(nominal_posture);
+            N_prec.setIdentity();
+            joint_task->updateTaskModel(N_prec);
+            robot_control_torques = joint_task->computeTorques();
 
-        // State machine logic
-        switch (state) {
-            case RESET:
-                // Reset logic
-                cout << "RESET state" << endl;
-                // Perform reset actions here
-                state = CALIBRATION;
-                break;
-
-            case CALIBRATION:
-                // Calibration logic
-                cout << "CALIBRATION state" << endl;
-                human->calibratePose(complete_link_names, current_link_poses, n_calibration_samples, first_loop);
-                if (first_loop) {
-                    first_loop = false;
-                }
-
-                if (n_samples > n_calibration_samples) {
-                    state = TRACKING;
+            if (joint_task->goalPositionReached(1e-2)) {
+                if (redis_client.getInt(USER_READY_KEY) == 1) {
+                    state = CALIBRATION;
+                    first_loop = true;
                     n_samples = 0;
-
-                    // Publish the starting poses in OptiTrack frame
-                    auto initial_poses = human->getMultiInitialPose(complete_link_names);
-                    for (int i = 0; i < initial_poses.size(); ++i) {
-                        cout << "Link: " << complete_link_names[i] << "\n";
-                        cout << "Starting position: \n" << initial_poses[i].translation().transpose() << "\n";
-                        cout << "Starting rotation: \n" << initial_poses[i].linear() << "\n";
-                        cout << "--- \n";  
-                    }
-                } else {
-                    n_samples++;
+                    continue;
                 }
-                break;
+            }
+        } else if (state == CALIBRATION) {
+            human->calibratePose({current_pose}, n_calibration_samples, first_loop);
+            if (first_loop) {
+                first_loop = false;
+            }
 
-            case TRACKING:
-                // Tracking logic
-                cout << "TRACKING state" << endl;
+            if (n_samples > n_calibration_samples) {
+                state = TRACKING;
+                n_samples = 0;
+                end_effector_initial_pose = human->getInitialPose();
+                std::cout << "end_effector_initial_pose: " << end_effector_initial_pose.translation().transpose() << std::endl;
+                continue;
+            } else {
+                n_samples++;
+            }
 
-                // Compute the centroid of the hand positions for the end-effector target
-                Vector3d ee_pos_goal = 0.5 * (right_hand_pos + left_hand_pos);
+        } else if (state == TRACKING) {
+            // update model
+            N_prec.setIdentity();
+            task->updateTaskModel(N_prec);
+            // Controller
+            control_torques = VectorXd::Zero(dof);
 
-                // Set the end-effector task goal
-                pose_task->setGoalPosition(ee_pos_goal);
+            // get relative pose
+            std::vector<Eigen::Affine3d> current_poses = {current_pose};
+            std::vector<Eigen::Affine3d> relative_poses = human->relativePose(current_poses);
+            Eigen::Affine3d relative_pose = relative_poses[0];
 
-                // Read hip position for the mobile base target
-                Vector3d hip_pos = redis_client.getEigen(HIPS_POS);
-                Vector3d base_pos_goal = hip_pos;
+            // Print relative_pose and control_torques
+            std::cout << "relative_pose translation: " << relative_pose.translation().transpose() << std::endl;
+            std::cout << "relative_pose rotation: \n" << relative_pose.rotation() << std::endl;
 
-                // Set the mobile base task goal
-                base_task->setGoalPosition(base_pos_goal);
+            // set task goals and compute control torques
+            Eigen::Vector3d goal_position = end_effector_initial_pose.translation() + relative_pose.translation();
+            task->setGoalPosition(goal_position);
+            control_torques = task->computeTorques() + robot->coriolisForce() + joint_task->computeTorques();
 
-                // Compute control torques
-                command_torques.setZero();
-                N_prec.setIdentity();
-                base_task->updateTaskModel(N_prec);
-                command_torques += base_task->computeTorques();
-                pose_task->updateTaskModel(base_task->getTaskAndPreviousNullspace());
-                command_torques += pose_task->computeTorques();
-                break;
+            std::cout << "control_torques: " << control_torques.transpose() << std::endl;
         }
 
-        // Send torques to robot
-        redis_client.setEigen(PANDA_JOINT_TORQUES_COMMANDED_KEY, command_torques);
+        // execute redis write callback
+        redis_client.setEigen(PANDA_JOINT_TORQUES_COMMANDED_KEY, control_torques);
     }
 
-    // Stop timer and clean up
     timer.stop();
     cout << "\nControl loop timer stats:\n";
     timer.printInfoPostRun();
-    redis_client.setEigen(PANDA_JOINT_TORQUES_COMMANDED_KEY, VectorXd::Zero(command_torques.size()));
-
-    return 0;
+    redis_client.setEigen(PANDA_JOINT_TORQUES_COMMANDED_KEY, 0 * control_torques);  // back to floating
 }

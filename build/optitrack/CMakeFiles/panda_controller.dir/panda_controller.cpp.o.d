@@ -1196,5 +1196,4 @@ optitrack/CMakeFiles/panda_controller.dir/panda_controller.cpp.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk/usr/include/c++/v1/__filesystem/recursive_directory_iterator.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk/usr/include/c++/v1/__filesystem/u8path.h \
   /Users/rheamalhotra/Desktop/robotics/react-genie-robotics/optitrack/redis_keys.h \
-  /Users/rheamalhotra/Desktop/robotics/react-genie-robotics/include/Human2D.h \
-  /Users/rheamalhotra/Desktop/robotics/OpenSai/core/sai2-common/src/filters/ButterworthFilter.h
+  /Users/rheamalhotra/Desktop/robotics/react-genie-robotics/include/Human2D.h
