@@ -6,9 +6,9 @@
  * 
  */
 
-const std::string PANDA_JOINT_ANGLES_KEY = "sai2::sim::mmp_panda::sensors::q";
-const std::string PANDA_JOINT_VELOCITIES_KEY = "sai2::sim::mmp_panda::sensors::dq";
-const std::string PANDA_JOINT_TORQUES_COMMANDED_KEY = "sai2::sim::mmp_panda::actuators::fgc";
+const std::string JOINT_ANGLES_KEY = "sai2::sim::mmp_panda::sensors::q";
+const std::string JOINT_VELOCITIES_KEY = "sai2::sim::mmp_panda::sensors::dq";
+const std::string JOINT_TORQUES_COMMANDED_KEY = "sai2::sim::mmp_panda::actuators::fgc";
 
 const std::string USER_READY_KEY = "sai2::optitrack::user_ready";
 

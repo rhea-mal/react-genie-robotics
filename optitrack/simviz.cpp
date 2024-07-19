@@ -87,16 +87,16 @@ int main() {
 
 	/*------- Set up visualization -------*/
 	// init redis client values 
-	redis_client.setEigen(PANDA_JOINT_ANGLES_KEY, panda->q()); 
-	redis_client.setEigen(PANDA_JOINT_VELOCITIES_KEY, panda->dq()); 
-	redis_client.setEigen(PANDA_JOINT_TORQUES_COMMANDED_KEY, 0 * panda->q());
+	redis_client.setEigen(JOINT_ANGLES_KEY, panda->q()); 
+	redis_client.setEigen(JOINT_VELOCITIES_KEY, panda->dq()); 
+	redis_client.setEigen(JOINT_TORQUES_COMMANDED_KEY, 0 * panda->q());
 
 	bool conmove = true;
 	thread sim_thread(simulation, sim);
 
 	// while window is open:
 	while (graphics->isWindowOpen() && fSimulationRunning) {
-        graphics->updateRobotGraphics(panda_name, redis_client.getEigen(PANDA_JOINT_ANGLES_KEY));
+        graphics->updateRobotGraphics(panda_name, redis_client.getEigen(JOINT_ANGLES_KEY));
 		{
 			lock_guard<mutex> lock(mutex_update);
 		}
@@ -136,14 +136,14 @@ void simulation(std::shared_ptr<Sai2Simulation::Sai2Simulation> sim) {
 		timer.waitForNextLoop();
 		const double time = timer.elapsedSimTime();
 
-		VectorXd panda_control_torques = redis_client.getEigen(PANDA_JOINT_TORQUES_COMMANDED_KEY);
+		VectorXd panda_control_torques = redis_client.getEigen(JOINT_TORQUES_COMMANDED_KEY);
 		{
 			lock_guard<mutex> lock(mutex_torques);
 			sim->setJointTorques(panda_name, panda_control_torques + panda_ui_torques);
 		}
 		sim->integrate();
-        redis_client.setEigen(PANDA_JOINT_ANGLES_KEY, sim->getJointPositions(panda_name));
-        redis_client.setEigen(PANDA_JOINT_VELOCITIES_KEY, sim->getJointVelocities(panda_name));
+        redis_client.setEigen(JOINT_ANGLES_KEY, sim->getJointPositions(panda_name));
+        redis_client.setEigen(JOINT_VELOCITIES_KEY, sim->getJointVelocities(panda_name));
 
 		// update object information 
 		{
