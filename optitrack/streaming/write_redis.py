@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 # Redis configuration
 REDIS_HOST = '127.0.0.1'
 REDIS_PORT = 6379
-INPUT_FILE = '/Users/rheamalhotra/Desktop/robotics/react-genie-robotics/optitrack/recordings/realsense2.txt'  # Input file with the data
+INPUT_FILE = '/Users/rheamalhotra/Desktop/robotics/react-genie-robotics/optitrack/recordings/realsense.txt'  # Input file with the data
 
 # Connect to Redis
 redis_client = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
